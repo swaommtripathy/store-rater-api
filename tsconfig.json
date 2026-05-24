@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "ignoreDeprecations": "5.0",
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -17,12 +18,13 @@
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
-    "rootDir": "src"
+    "rootDir": "src",
+    "types": ["node", "jest"]
   },
   "exclude": [
     "node_modules",
     "dist",
     "test",
-    "**/*spec.ts" // This ignores all .spec.ts files in src
+    "**/*spec.ts"
   ]
 }

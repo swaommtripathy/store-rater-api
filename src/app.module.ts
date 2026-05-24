@@ -25,18 +25,35 @@ import { Rating } from './modules/ratings/entities/rating.entity';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USERNAME'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_DATABASE'),
-        entities: [User, Store, Rating],
-        synchronize: true,
-        dropSchema: false,
-        logging: true,
-      }),
+      useFactory: (configService: ConfigService): any => {
+        const host = configService.get<string>('DB_HOST');
+        const forceSqlite = configService.get<string>('FORCE_SQLITE') === 'true';
+
+        // If DB_HOST is provided and not explicitly forcing sqlite, assume Postgres in env and use it.
+        if (host && !forceSqlite) {
+          return {
+            type: 'postgres' as const,
+            host,
+            port: Number(configService.get<number>('DB_PORT') || 5432),
+            username: configService.get<string>('DB_USERNAME'),
+            password: configService.get<string>('DB_PASSWORD'),
+            database: configService.get<string>('DB_DATABASE'),
+            entities: [User, Store, Rating],
+            synchronize: true,
+            dropSchema: false,
+            logging: true,
+          };
+        }
+
+        // Fallback to a local SQLite DB for faster local development when Postgres isn't configured.
+        return {
+          type: 'sqlite' as const,
+          database: configService.get<string>('SQLITE_DB_PATH') || 'data/sqlite.db',
+          entities: [User, Store, Rating],
+          synchronize: true,
+          logging: false,
+        };
+      },
     }),
 
     // 3. Feature Modules
